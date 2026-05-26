@@ -1,0 +1,47 @@
+# public-blog Specification
+
+## Purpose
+TBD - created by archiving change add-multi-user-blog. Update Purpose after archive.
+## Requirements
+### Requirement: 游客可以浏览公开文章列表
+系统 SHALL 提供公开文章列表接口和页面，允许未登录用户查看所有已公开文章，并按分页方式浏览。
+
+#### Scenario: 首页显示公开文章
+- **WHEN** 游客访问博客首页
+- **THEN** 系统 MUST 返回并展示已公开文章的标题、摘要、作者、发布时间和分类信息
+
+### Requirement: 游客可以按分类筛选公开文章
+系统 SHALL 提供分类目录与分类文章列表，使游客可以只查看某个分类下的公开文章。
+
+#### Scenario: 游客查看某分类下的文章
+- **WHEN** 游客进入某个分类页面
+- **THEN** 系统 MUST 仅展示该分类下的已公开文章
+
+### Requirement: 游客可以搜索公开文章
+系统 SHALL 支持基于关键词搜索公开文章，并覆盖标题、摘要和正文内容。
+
+#### Scenario: 游客按关键词搜索文章
+- **WHEN** 游客输入关键词并提交搜索
+- **THEN** 系统 MUST 返回与关键词匹配的公开文章列表
+
+### Requirement: 游客可以查看文章详情页
+系统 SHALL 提供文章详情页，正确展示文章元信息与渲染后的内容。
+
+#### Scenario: 游客打开文章详情页
+- **WHEN** 游客访问某篇文章的详情链接
+- **THEN** 系统 MUST 展示文章标题、作者、发布时间、分类、标签和 HTML 渲染后的正文内容
+
+### Requirement: 文章详情页必须支持技术博客阅读体验
+系统 SHALL 在文章详情页中正确展示 Markdown 渲染结果，并支持代码块、表格和图片的良好阅读体验。
+
+#### Scenario: 文章包含代码块与图片
+- **WHEN** 游客打开一篇包含代码块、表格和图片的文章
+- **THEN** 系统 MUST 正确显示代码高亮样式、表格结构和自适应图片样式
+
+### Requirement: 游客可以访问作者主页
+系统 SHALL 提供作者主页，展示作者公开资料和其已公开文章列表。
+
+#### Scenario: 游客查看作者主页
+- **WHEN** 游客访问作者主页地址
+- **THEN** 系统 MUST 展示作者昵称、头像、简介和该作者的公开文章列表
+
