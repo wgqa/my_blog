@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import axios from 'axios'
 import { computed, onMounted, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { getApiErrorMessage } from '../api/error'
 import AdminLayout from './AdminLayout.vue'
 import PaginationBar from '../components/public/PaginationBar.vue'
 import StateBlock from '../components/public/StateBlock.vue'
@@ -24,11 +24,7 @@ const load = async (page = 0) => {
   try {
     posts.value = await fetchAdminPosts({ page, size: 10 })
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '文章列表加载失败，请稍后重试。'
-    } else {
-      error.value = '文章列表加载失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '文章列表加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -48,11 +44,7 @@ const removePost = async (post: AdminPostListItem) => {
     success.value = '文章已删除。'
     await load(posts.value?.page ?? 0)
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '文章删除失败，请稍后重试。'
-    } else {
-      error.value = '文章删除失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '文章删除失败，请稍后重试。')
   } finally {
     deletingId.value = null
   }

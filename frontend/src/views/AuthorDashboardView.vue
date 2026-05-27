@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import axios from 'axios'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import { getApiErrorMessage } from '../api/error'
 import PublicLayout from '../components/public/PublicLayout.vue'
 import { fetchMyPosts, fetchMyProfile, updateMyProfile } from '../api/me'
 import { useAuthStore } from '../stores/auth'
@@ -42,11 +42,7 @@ const loadProfile = async () => {
     applyProfile(profileData)
     postCount.value = postData.total
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '个人资料加载失败，请稍后重试。'
-    } else {
-      error.value = '个人资料加载失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '个人资料加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -70,11 +66,7 @@ const submit = async () => {
     })
     success.value = '个人资料已保存。'
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '个人资料保存失败，请稍后重试。'
-    } else {
-      error.value = '个人资料保存失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '个人资料保存失败，请稍后重试。')
   } finally {
     saving.value = false
   }

@@ -9,6 +9,11 @@ const authStore = useAuthStore()
 const keyword = ref('')
 
 const dashboardLabel = computed(() => (authStore.isAdmin ? '进入后台' : '进入工作区'))
+const dashboardTarget = computed(() => (authStore.isAdmin ? '/admin' : '/me'))
+const showDashboardLink = computed(() => {
+  const target = dashboardTarget.value
+  return route.path !== target && !route.path.startsWith(`${target}/`)
+})
 
 watch(
   () => route.query.keyword,
@@ -60,7 +65,8 @@ const logout = () => {
           <div class="flex items-center justify-end gap-3">
             <template v-if="authStore.isAuthenticated && authStore.user">
               <RouterLink
-                :to="authStore.isAdmin ? '/admin' : '/me'"
+                v-if="showDashboardLink"
+                :to="dashboardTarget"
                 class="rounded-xl border border-zinc-300 px-4 py-3 text-sm font-medium text-zinc-700 transition hover:border-zinc-500 hover:text-zinc-900"
               >
                 {{ dashboardLabel }}

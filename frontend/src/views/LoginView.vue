@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import axios from 'axios'
 import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { getApiErrorMessage } from '../api/error'
 import PublicLayout from '../components/public/PublicLayout.vue'
 import { useAuthStore } from '../stores/auth'
 
@@ -40,11 +40,7 @@ const submit = async () => {
     })
     await router.push(redirectTarget.value)
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '登录失败，请检查用户名和密码。'
-    } else {
-      error.value = '登录失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '登录失败，请检查用户名和密码。')
   } finally {
     loading.value = false
   }

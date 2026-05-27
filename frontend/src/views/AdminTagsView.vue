@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import axios from 'axios'
 import { onMounted, reactive, ref } from 'vue'
+import { getApiErrorMessage } from '../api/error'
 import AdminLayout from './AdminLayout.vue'
 import StateBlock from '../components/public/StateBlock.vue'
 import { createAdminTag, deleteAdminTag, fetchAdminTags, updateAdminTag } from '../api/admin'
@@ -25,11 +25,7 @@ const load = async () => {
   try {
     tags.value = await fetchAdminTags()
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '标签列表加载失败，请稍后重试。'
-    } else {
-      error.value = '标签列表加载失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '标签列表加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -70,11 +66,7 @@ const submit = async () => {
     resetForm()
     await load()
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '标签保存失败，请稍后重试。'
-    } else {
-      error.value = '标签保存失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '标签保存失败，请稍后重试。')
   } finally {
     submitting.value = false
   }
@@ -97,11 +89,7 @@ const removeTag = async (tag: AdminTag) => {
     }
     await load()
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '标签删除失败，请稍后重试。'
-    } else {
-      error.value = '标签删除失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '标签删除失败，请稍后重试。')
   } finally {
     deletingId.value = null
   }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import axios from 'axios'
 import { computed, onMounted, reactive, ref } from 'vue'
+import { getApiErrorMessage } from '../api/error'
 import AdminLayout from './AdminLayout.vue'
 import PaginationBar from '../components/public/PaginationBar.vue'
 import StateBlock from '../components/public/StateBlock.vue'
@@ -30,11 +30,7 @@ const load = async (page = 0) => {
   try {
     users.value = await fetchAdminUsers({ page, size: 10 })
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '作者列表加载失败，请稍后重试。'
-    } else {
-      error.value = '作者列表加载失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '作者列表加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -63,11 +59,7 @@ const submit = async () => {
     resetForm()
     await load(users.value?.page ?? 0)
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '作者账号创建失败，请稍后重试。'
-    } else {
-      error.value = '作者账号创建失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '作者账号创建失败，请稍后重试。')
   } finally {
     submitting.value = false
   }
@@ -83,11 +75,7 @@ const toggleStatus = async (user: AdminUserItem) => {
     success.value = user.status === 'ENABLED' ? '作者账号已禁用。' : '作者账号已启用。'
     await load(users.value?.page ?? 0)
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '作者状态更新失败，请稍后重试。'
-    } else {
-      error.value = '作者状态更新失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '作者状态更新失败，请稍后重试。')
   } finally {
     togglingId.value = null
   }

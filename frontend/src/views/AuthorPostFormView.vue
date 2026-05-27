@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import axios from 'axios'
 import { MdEditor } from 'md-editor-v3'
 import { computed, onMounted, reactive, ref } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { getApiErrorMessage } from '../api/error'
 import { createMyPost, fetchMyPostDetail, updateMyPost, uploadMyImage } from '../api/me'
 import { fetchCategories } from '../api/public'
 import PublicLayout from '../components/public/PublicLayout.vue'
@@ -66,11 +66,7 @@ const uploadCover = async (event: Event) => {
     form.coverImageUrl = data.url
     success.value = '图片上传成功。'
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '图片上传失败，请稍后重试。'
-    } else {
-      error.value = '图片上传失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '图片上传失败，请稍后重试。')
   } finally {
     uploading.value = false
     if (input) {
@@ -89,11 +85,7 @@ const uploadEditorImage = async (files: File[], callback: (urls: string[]) => vo
     callback(urls)
     success.value = '编辑器图片上传成功。'
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '编辑器图片上传失败，请稍后重试。'
-    } else {
-      error.value = '编辑器图片上传失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '编辑器图片上传失败，请稍后重试。')
   } finally {
     uploading.value = false
   }
@@ -156,11 +148,7 @@ const loadPost = async () => {
     const data = await fetchMyPostDetail(postId.value)
     applyDetail(data)
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '文章详情加载失败，请稍后重试。'
-    } else {
-      error.value = '文章详情加载失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '文章详情加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -181,11 +169,7 @@ const submit = async () => {
     applyDetail(data)
     await router.replace({ name: 'author-post-edit', params: { id: data.id } })
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '文章保存失败，请稍后重试。'
-    } else {
-      error.value = '文章保存失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '文章保存失败，请稍后重试。')
   } finally {
     saving.value = false
   }

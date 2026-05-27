@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import axios from 'axios'
 import { onMounted, reactive, ref } from 'vue'
+import { getApiErrorMessage } from '../api/error'
 import AdminLayout from './AdminLayout.vue'
 import StateBlock from '../components/public/StateBlock.vue'
 import { createAdminCategory, deleteAdminCategory, fetchAdminCategories, updateAdminCategory } from '../api/admin'
@@ -26,11 +26,7 @@ const load = async () => {
   try {
     categories.value = await fetchAdminCategories()
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '分类列表加载失败，请稍后重试。'
-    } else {
-      error.value = '分类列表加载失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '分类列表加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
@@ -74,11 +70,7 @@ const submit = async () => {
     resetForm()
     await load()
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '分类保存失败，请稍后重试。'
-    } else {
-      error.value = '分类保存失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '分类保存失败，请稍后重试。')
   } finally {
     submitting.value = false
   }
@@ -101,11 +93,7 @@ const removeCategory = async (category: AdminCategory) => {
     }
     await load()
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '分类删除失败，请稍后重试。'
-    } else {
-      error.value = '分类删除失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '分类删除失败，请稍后重试。')
   } finally {
     deletingId.value = null
   }

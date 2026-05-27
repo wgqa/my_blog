@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import axios from 'axios'
 import { onMounted, ref } from 'vue'
+import { getApiErrorMessage } from '../api/error'
 import AdminLayout from './AdminLayout.vue'
 import StateBlock from '../components/public/StateBlock.vue'
 import { fetchAdminStats } from '../api/admin'
@@ -17,11 +17,7 @@ const load = async () => {
   try {
     stats.value = await fetchAdminStats()
   } catch (err) {
-    if (axios.isAxiosError(err)) {
-      error.value = err.response?.data?.message ?? '统计数据加载失败，请稍后重试。'
-    } else {
-      error.value = '统计数据加载失败，请稍后重试。'
-    }
+    error.value = getApiErrorMessage(err, '统计数据加载失败，请稍后重试。')
   } finally {
     loading.value = false
   }
