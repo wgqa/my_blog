@@ -1,4 +1,4 @@
-# 多用户博客系统
+# 序章
 
 一个前后端分离的多用户博客 MVP，包含公开博客、作者工作区和 `/admin` 管理后台。
 
@@ -39,8 +39,8 @@
 ├─ frontend/                # Vue 前端，包含公开站点、作者工作区、/admin
 ├─ backend/                 # Spring Boot 后端 API
 ├─ docker/                  # Dockerfile 与 Nginx 配置
-├─ docker-compose.yml       # 本地一键启动编排
-└─ .env.example             # 示例环境变量
+├─ docker-compose.yml       # Docker Compose 编排
+└─ .env.example             # 环境变量模板
 ```
 
 ## 环境要求
@@ -59,27 +59,32 @@
 
 ## 环境变量
 
-项目根目录提供了 `.env.example`，默认内容如下：
+项目根目录提供了 `.env.example` 作为部署模板，请先复制为你自己的 `.env` 后再填写真实值：
 
-```env
-VITE_API_BASE_URL=http://localhost:8080/api
-SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/blog
-SPRING_DATASOURCE_USERNAME=blog
-SPRING_DATASOURCE_PASSWORD=blog123
-JWT_SECRET=change-this-secret-change-this-secret
-JWT_EXPIRE_SECONDS=86400
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin123456
-ADMIN_NICKNAME=管理员
-MINIO_ENDPOINT=http://minio:9000
-MINIO_ACCESS_KEY=minioadmin
-MINIO_SECRET_KEY=minioadmin
-MINIO_BUCKET=blog-assets
-MINIO_PUBLIC_BASE_URL=http://localhost:9000/blog-assets
-CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost
+```bash
+cp .env.example .env
 ```
 
-建议复制一份作为自己的本地环境配置后再修改默认值。
+模板中的关键项：
+
+```env
+VITE_API_BASE_URL=/api
+SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/blog
+SPRING_DATASOURCE_USERNAME=blog
+SPRING_DATASOURCE_PASSWORD=replace-with-a-strong-db-password
+JWT_SECRET=replace-with-a-long-random-jwt-secret-at-least-32-chars
+ADMIN_PASSWORD=replace-with-a-strong-admin-password
+MINIO_ACCESS_KEY=replace-with-minio-access-key
+MINIO_SECRET_KEY=replace-with-minio-secret-key
+MINIO_PUBLIC_BASE_URL=https://your-domain.example/blog-assets
+CORS_ALLOWED_ORIGINS=https://your-domain.example
+```
+
+说明：
+- `VITE_API_BASE_URL` 保持 `/api`，前端会通过同源 Nginx 入口访问后端。
+- `MINIO_PUBLIC_BASE_URL` 应改成你的正式资源访问地址。
+- `CORS_ALLOWED_ORIGINS` 应只填写正式站点域名。
+- `.env.example` 只是模板，不要直接拿去上线。
 
 ## 本地开发启动
 
@@ -90,11 +95,11 @@ CORS_ALLOWED_ORIGINS=http://localhost:5173,http://localhost
 - PostgreSQL 数据库：
   - database: `blog`
   - username: `blog`
-  - password: `blog123`
+  - password: 自行配置
 - MinIO：
   - endpoint: `http://localhost:9000`
-  - access key: `minioadmin`
-  - secret key: `minioadmin`
+  - access key: 自行配置
+  - secret key: 自行配置
   - bucket: `blog-assets`
 
 后端启动时会执行 Flyway migration，并按配置自动初始化默认管理员账号。
@@ -124,11 +129,7 @@ npm run dev
 
 前端默认端口：`5173`
 
-前端通过 `frontend/src/api/http.ts` 中的 `VITE_API_BASE_URL` 访问后端，默认指向：
-
-```text
-http://localhost:8080/api
-```
+前端通过 `frontend/src/api/http.ts` 中的 `VITE_API_BASE_URL` 访问后端；本地直跑前端时，可按需将其配置为 `http://localhost:8080/api`，通过 Nginx 入口访问时则保持 `/api`。
 
 ### 4. 访问入口
 
@@ -137,9 +138,9 @@ http://localhost:8080/api
 - 作者工作区：`http://localhost:5173/me`
 - 管理后台：`http://localhost:5173/admin`
 
-## Docker Compose 启动
+## Docker Compose 部署
 
-项目根目录已经提供 `docker-compose.yml`，包含以下服务：
+项目根目录提供了面向单机部署的 `docker-compose.yml`，包含以下服务：
 
 - `postgres`
 - `minio`
@@ -147,56 +148,67 @@ http://localhost:8080/api
 - `frontend`
 - `nginx`
 
-### 1. 启动服务
+其中只有 `nginx` 对外暴露端口；前端静态文件由前端构建容器产出后挂载给 Nginx，后端与数据服务都只走 Compose 内网。
+
+### 1. 准备生产环境变量
 
 在项目根目录执行：
 
 ```bash
-docker compose up --build
+cp .env.example .env
 ```
 
-### 2. 默认端口
+然后把 `.env` 中的数据库密码、JWT 密钥、管理员密码、MinIO 凭证、正式域名等全部改成真实值。
+
+### 2. 启动服务
+
+在项目根目录执行：
+
+```bash
+docker compose --env-file .env up -d --build
+```
+
+也可以通过环境变量切换配置文件：
+
+```bash
+APP_ENV_FILE=.env docker compose up -d --build
+```
+
+### 3. 对外端口
+
+默认只暴露：
 
 - Nginx：`80`
-- Frontend：`5173`
-- Backend：`8080`
-- PostgreSQL：`5432`
-- MinIO API：`9000`
-- MinIO Console：`9001`
 
-### 3. 统一访问入口
+如果你在服务器上部署，建议只开放 `80/443`，其余服务保持内网访问。
 
-Nginx 会做反向代理：
+`postgres` 与 `minio` 的容器凭据会直接读取 `.env` 中的同名变量，因此数据库和对象存储的初始账号密码会与后端运行配置保持一致。
 
-- `/` 转发到前端容器
-- `/api/` 转发到后端容器
-- `/swagger-ui/` 转发到后端 Swagger UI
-- `/v3/api-docs/` 转发到后端 OpenAPI 文档
+### 4. 统一访问入口
+
+Nginx 会负责：
+
+- 直接提供前端静态资源
+- 为前端路由刷新回退到 `index.html`
+- `/api/` 反向代理到后端
+- `/swagger-ui/` 与 `/v3/api-docs/` 代理到后端
 
 因此使用 Docker Compose 启动后，可以优先通过以下地址访问：
 
 - 站点入口：`http://localhost`
 - Swagger UI：`http://localhost/swagger-ui/index.html`
 
-### 4. 停止服务
+### 5. 停止服务
 
 ```bash
 docker compose down
 ```
 
-如果你希望同时清理容器卷数据，可以手动删除 `postgres-data/` 和 `minio-data/`。
+如果你希望同时清理容器卷数据，可以手动删除 `postgres15-data/` 和 `minio-data/`。
 
 ## 默认管理员账号
 
-系统启动时会根据后端配置自动初始化管理员账号：
-
-- 用户名：`admin`
-- 密码：`admin123456`
-- 昵称：`管理员`
-
-对应配置来源：
-- `backend/src/main/resources/application.yml`
-- `.env.example`
+系统启动时会根据后端配置自动初始化管理员账号，账号信息来自你自己的 `.env` 配置。
 
 首次登录后建议尽快修改为你自己的安全密码。
 
@@ -208,18 +220,11 @@ docker compose down
 - `MINIO_BUCKET`
 - `MINIO_PUBLIC_BASE_URL`
 
-默认配置为：
+部署到服务器时，请确认：
 
-- MinIO API：`http://localhost:9000`
-- MinIO Console：`http://localhost:9001`
-- Bucket：`blog-assets`
-- Public Base URL：`http://localhost:9000/blog-assets`
-
-使用建议：
-
-1. 确保 MinIO 中存在 `blog-assets` bucket。
-2. 确保该 bucket 具备前端可读的访问策略，否则图片无法公开展示。
-3. 如果你部署在服务器上，应把 `MINIO_PUBLIC_BASE_URL` 改成你的公网访问地址。
+1. MinIO 中已存在 `blog-assets` bucket。
+2. 该 bucket 具备前端可读的访问策略，否则图片无法公开展示。
+3. `MINIO_PUBLIC_BASE_URL` 已改成你的正式资源访问地址。
 
 ## 常用命令
 
@@ -239,24 +244,10 @@ npm test --prefix frontend
 ./mvnw -f backend/pom.xml test
 ```
 
-## 当前验证状态
+### Docker
 
-已经完成的基础验证：
-
-- 后端集成测试通过
-- 前端关键测试通过
-- 前端生产构建通过
-- Docker Compose 容器成功拉起
-- 已完成游客浏览、管理员建号、作者发文、文章展示、管理员禁用作者、管理员删除文章的完整联调
-
-说明：
-- Docker Compose 文件、Dockerfile 与 Nginx 配置已完成并验证可用。
-- fresh Docker 环境默认没有业务分类和标签种子数据，联调时需要先准备分类与标签后再执行作者发文链路。
-
-## 后续建议
-
-如果你接下来要继续推进交付收口，建议按这个顺序：
-
-1. 清理不需要提交的联调产物并检查 `git status`
-2. 提交代码并创建 PR
-3. 根据需要补充分类/标签初始化方案，优化首次启动体验
+```bash
+docker compose --env-file .env up -d --build
+docker compose logs -f nginx backend
+docker compose down
+```
