@@ -43,9 +43,9 @@ const logout = () => {
       <div class="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-5 md:flex-row md:items-center md:justify-between">
         <div>
           <RouterLink to="/" class="text-2xl font-bold tracking-tight text-zinc-900">
-            Multi-user Blog
+            序章
           </RouterLink>
-          <p class="mt-1 text-sm text-zinc-500">面向技术写作的多用户博客</p>
+          <p class="mt-1 text-sm text-zinc-500">记录技术，也记录思路的生长</p>
         </div>
         <div class="flex w-full max-w-3xl flex-col gap-3 md:flex-row md:items-center md:justify-end">
           <form class="flex w-full max-w-xl gap-3" @submit.prevent="search">
