@@ -82,8 +82,8 @@ CORS_ALLOWED_ORIGINS=https://your-domain.example
 
 说明：
 - `VITE_API_BASE_URL` 保持 `/api`，前端会通过同源 Nginx 入口访问后端。
-- `MINIO_PUBLIC_BASE_URL` 应改成你的正式资源访问地址。
-- `CORS_ALLOWED_ORIGINS` 应只填写正式站点域名。
+- `MINIO_PUBLIC_BASE_URL` 在无域名阶段可写成 `http://服务器IP/blog-assets`，由 Nginx 统一转发到 Docker 内的 MinIO。
+- `CORS_ALLOWED_ORIGINS` 在无域名阶段应填写 `http://服务器IP`。
 - `.env.example` 只是模板，不要直接拿去上线。
 
 ## 本地开发启动
@@ -191,6 +191,7 @@ Nginx 会负责：
 - 直接提供前端静态资源
 - 为前端路由刷新回退到 `index.html`
 - `/api/` 反向代理到后端
+- `/blog-assets/` 反向代理到 Docker 内的 MinIO
 - `/swagger-ui/` 与 `/v3/api-docs/` 代理到后端
 
 因此使用 Docker Compose 启动后，可以优先通过以下地址访问：
@@ -224,7 +225,8 @@ docker compose down
 
 1. MinIO 中已存在 `blog-assets` bucket。
 2. 该 bucket 具备前端可读的访问策略，否则图片无法公开展示。
-3. `MINIO_PUBLIC_BASE_URL` 已改成你的正式资源访问地址。
+3. `MINIO_PUBLIC_BASE_URL` 已改成你的正式资源访问地址，或者在无域名阶段改成 `http://服务器IP/blog-assets`。
+4. 外部图片访问应通过 Nginx 入口 `/blog-assets/`，不需要直接暴露 MinIO `9000` 端口。
 
 ## 常用命令
 
