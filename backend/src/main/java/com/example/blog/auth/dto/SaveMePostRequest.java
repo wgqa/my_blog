@@ -25,6 +25,10 @@ public record SaveMePostRequest(
         @NotBlank(message = "分类不能为空")
         String categorySlug,
 
-        List<String> tagSlugs
+        List<String> tagSlugs,
+
+        String visibility,
+
+        List<String> allowedReaderUsernames
 ) {
 }

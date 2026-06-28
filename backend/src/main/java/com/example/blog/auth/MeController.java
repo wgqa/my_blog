@@ -1,5 +1,7 @@
 package com.example.blog.auth;
 
+import com.example.blog.auth.dto.MeAccessiblePostDetailResponse;
+import com.example.blog.auth.dto.MeAccessiblePostItemResponse;
 import com.example.blog.auth.dto.MePostDetailResponse;
 import com.example.blog.auth.dto.MePostListItemResponse;
 import com.example.blog.auth.dto.MeProfileResponse;
@@ -19,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
@@ -71,6 +75,22 @@ public class MeController {
     @ResponseStatus(NO_CONTENT)
     public void deletePost(@PathVariable Long id) {
         mePostService.deleteMyPost(id);
+    }
+
+    @GetMapping("/users/search")
+    public List<MeService.UserSearchResult> searchUsers(@RequestParam("q") String q) {
+        return meService.searchUsers(q);
+    }
+
+    @GetMapping("/accessible-posts")
+    public PageResponse<MeAccessiblePostItemResponse> accessiblePosts(@RequestParam(defaultValue = "0") int page,
+                                                                       @RequestParam(defaultValue = "10") int size) {
+        return meService.listAccessiblePosts(page, size);
+    }
+
+    @GetMapping("/accessible-posts/{id}")
+    public MeAccessiblePostDetailResponse accessiblePost(@PathVariable Long id) {
+        return meService.getAccessiblePostDetail(id);
     }
 
     @PostMapping("/uploads")

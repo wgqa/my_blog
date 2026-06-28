@@ -15,6 +15,8 @@ public record MePostDetailResponse(
         List<String> tagSlugs,
         String status,
         LocalDateTime publishedAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        String visibility,
+        List<String> allowedReaderUsernames
 ) {
 }

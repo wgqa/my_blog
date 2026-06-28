@@ -24,6 +24,8 @@ export interface MePostListItem {
   updatedAt: string | null
 }
 
+export type PostVisibility = 'PUBLIC' | 'PRIVATE' | 'RESTRICTED'
+
 export interface MePostDetail {
   id: number
   title: string
@@ -37,6 +39,8 @@ export interface MePostDetail {
   status: string
   publishedAt: string | null
   updatedAt: string | null
+  visibility: PostVisibility
+  allowedReaderUsernames: string[]
 }
 
 export interface MeUpload {
@@ -56,4 +60,48 @@ export interface SaveMePostRequest {
   coverImageUrl: string | null
   categorySlug: string
   tagSlugs: string[]
+  visibility: PostVisibility
+  allowedReaderUsernames: string[]
+}
+
+export interface MeAccessiblePostItem {
+  id: number
+  title: string
+  slug: string
+  summary: string | null
+  authorUsername: string
+  authorNickname: string
+  categoryName: string
+  visibility: PostVisibility
+  publishedAt: string | null
+  updatedAt: string | null
+}
+
+export interface MeAccessiblePostDetail {
+  id: number
+  title: string
+  slug: string
+  summary: string | null
+  contentHtml: string
+  authorUsername: string
+  authorNickname: string
+  categoryName: string
+  tagNames: string[]
+  visibility: PostVisibility
+  publishedAt: string | null
+  updatedAt: string | null
+}
+
+export interface UserSearchResult {
+  id: number
+  username: string
+  nickname: string
+  avatarUrl: string | null
+}
+
+export interface GitHubImportRequest {
+  token: string
+  repo: string
+  path: string
+  branch?: string
 }

@@ -1,11 +1,15 @@
 import { http } from './http'
 import type {
+  GitHubImportRequest,
+  MeAccessiblePostDetail,
+  MeAccessiblePostItem,
   MePostDetail,
   MePostListItem,
   MeProfile,
   MeUpload,
   SaveMePostRequest,
   UpdateMeProfileRequest,
+  UserSearchResult,
 } from '../types/me'
 import type { PageResponse } from '../types/public'
 
@@ -52,5 +56,25 @@ export const uploadMyImage = async (file: File) => {
   const formData = new FormData()
   formData.append('file', file)
   const { data } = await http.post<MeUpload>('/me/uploads', formData)
+  return data
+}
+
+export const searchUsers = async (q: string) => {
+  const { data } = await http.get<UserSearchResult[]>('/me/users/search', { params: { q } })
+  return data
+}
+
+export const fetchAccessiblePosts = async (params: PaginationParams = {}) => {
+  const { data } = await http.get<PageResponse<MeAccessiblePostItem>>('/me/accessible-posts', { params })
+  return data
+}
+
+export const fetchAccessiblePostDetail = async (id: number) => {
+  const { data } = await http.get<MeAccessiblePostDetail>(`/me/accessible-posts/${id}`)
+  return data
+}
+
+export const importFromGitHub = async (payload: GitHubImportRequest) => {
+  const { data } = await http.post<MePostDetail>('/me/github-import', payload)
   return data
 }

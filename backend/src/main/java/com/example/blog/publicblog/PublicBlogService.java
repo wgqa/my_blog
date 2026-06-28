@@ -5,6 +5,7 @@ import com.example.blog.exception.ResourceNotFoundException;
 import com.example.blog.model.Category;
 import com.example.blog.model.Post;
 import com.example.blog.model.PostStatus;
+import com.example.blog.model.PostVisibility;
 import com.example.blog.model.User;
 import com.example.blog.model.UserRole;
 import com.example.blog.model.UserStatus;
@@ -39,9 +40,10 @@ public class PublicBlogService {
     }
 
     public PageResponse<PublicPostListItem> listPublishedPosts(int page, int size) {
-        return PageResponse.from(postRepository.findByStatus(
+        return PageResponse.from(postRepository.findByStatusAndVisibility(
                 PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "publishedAt", "id")),
-                PostStatus.PUBLISHED
+                PostStatus.PUBLISHED,
+                PostVisibility.PUBLIC
         ).map(this::toItem));
     }
 
@@ -54,9 +56,10 @@ public class PublicBlogService {
 
     public PageResponse<PublicPostListItem> listPublishedPostsByCategory(String categorySlug, int page, int size) {
         ensureCategoryExists(categorySlug);
-        return PageResponse.from(postRepository.findByCategorySlugAndStatus(
+        return PageResponse.from(postRepository.findByCategorySlugAndStatusAndVisibility(
                 categorySlug,
                 PostStatus.PUBLISHED,
+                PostVisibility.PUBLIC,
                 PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "publishedAt", "id"))
         ).map(this::toItem));
     }
@@ -68,20 +71,17 @@ public class PublicBlogService {
         }
 
         return PageResponse.from(postRepository
-                .findByStatusAndTitleContainingIgnoreCaseOrStatusAndSummaryContainingIgnoreCaseOrStatusAndContentMarkdownContainingIgnoreCase(
-                        PostStatus.PUBLISHED,
+                .searchPublicPosts(
                         normalizedKeyword,
                         PostStatus.PUBLISHED,
-                        normalizedKeyword,
-                        PostStatus.PUBLISHED,
-                        normalizedKeyword,
+                        PostVisibility.PUBLIC,
                         PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "publishedAt", "id"))
                 )
                 .map(this::toItem));
     }
 
     public PublicPostDetail getPublishedPostDetail(String slug) {
-        Post post = postRepository.findBySlugAndStatus(slug, PostStatus.PUBLISHED)
+        Post post = postRepository.findBySlugAndStatusAndVisibility(slug, PostStatus.PUBLISHED, PostVisibility.PUBLIC)
                 .orElseThrow(() -> new ResourceNotFoundException("文章不存在: " + slug));
         return new PublicPostDetail(
                 post.getTitle(),
@@ -100,9 +100,10 @@ public class PublicBlogService {
         User author = userRepository.findByUsernameAndRoleAndStatus(username, UserRole.AUTHOR, UserStatus.ENABLED)
                 .orElseThrow(() -> new ResourceNotFoundException("作者不存在: " + username));
 
-        PageResponse<PublicPostListItem> posts = PageResponse.from(postRepository.findByAuthorUsernameAndStatus(
+        PageResponse<PublicPostListItem> posts = PageResponse.from(postRepository.findByAuthorUsernameAndStatusAndVisibility(
                 username,
                 PostStatus.PUBLISHED,
+                PostVisibility.PUBLIC,
                 PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "publishedAt", "id"))
         ).map(this::toItem));
 

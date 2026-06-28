@@ -139,6 +139,24 @@ onMounted(() => {
             <p class="mt-3 text-lg font-semibold text-zinc-900">立即写作</p>
             <p class="mt-2 text-sm text-zinc-500">进入新建文章页面，直接发布新内容。</p>
           </RouterLink>
+
+          <RouterLink
+            :to="{ name: 'author-accessible-posts' }"
+            class="rounded-2xl border border-zinc-200 bg-zinc-50 p-5 transition hover:border-zinc-400 hover:bg-white"
+          >
+            <p class="text-sm font-medium text-zinc-500">可访问文章</p>
+            <p class="mt-3 text-lg font-semibold text-zinc-900">受限内容</p>
+            <p class="mt-2 text-sm text-zinc-500">查看指定给你或仅自己可见的文章。</p>
+          </RouterLink>
+
+          <RouterLink
+            :to="{ name: 'author-github-import' }"
+            class="rounded-2xl border border-zinc-200 bg-zinc-50 p-5 transition hover:border-zinc-400 hover:bg-white"
+          >
+            <p class="text-sm font-medium text-zinc-500">从 GitHub 导入</p>
+            <p class="mt-3 text-lg font-semibold text-zinc-900">外部内容</p>
+            <p class="mt-2 text-sm text-zinc-500">通过 Token 拉取仓库中的 Markdown 文件。</p>
+          </RouterLink>
         </div>
 
         <div class="grid gap-5 md:grid-cols-2">

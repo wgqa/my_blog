@@ -11,11 +11,13 @@ import com.example.blog.model.Post;
 import com.example.blog.model.PostStatus;
 import com.example.blog.model.PostTag;
 import com.example.blog.model.PostTagId;
+import com.example.blog.model.PostVisibility;
 import com.example.blog.model.Tag;
 import com.example.blog.model.User;
 import com.example.blog.repository.CategoryRepository;
 import com.example.blog.repository.PostRepository;
 import com.example.blog.repository.TagRepository;
+import com.example.blog.repository.UserRepository;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class MePostService {
@@ -40,6 +43,7 @@ public class MePostService {
     private final PostRepository postRepository;
     private final CategoryRepository categoryRepository;
     private final TagRepository tagRepository;
+    private final UserRepository userRepository;
     private final MarkdownRenderService markdownRenderService;
 
     public MePostService(
@@ -47,12 +51,14 @@ public class MePostService {
             PostRepository postRepository,
             CategoryRepository categoryRepository,
             TagRepository tagRepository,
+            UserRepository userRepository,
             MarkdownRenderService markdownRenderService
     ) {
         this.meService = meService;
         this.postRepository = postRepository;
         this.categoryRepository = categoryRepository;
         this.tagRepository = tagRepository;
+        this.userRepository = userRepository;
         this.markdownRenderService = markdownRenderService;
     }
 
@@ -107,6 +113,19 @@ public class MePostService {
                 .orElseThrow(() -> new ResourceNotFoundException("文章不存在: " + postId));
     }
 
+    public Post getManagedPost(Long postId) {
+        return postRepository.findByIdAndStatusNot(postId, PostStatus.DELETED)
+                .orElseThrow(() -> new ResourceNotFoundException("文章不存在: " + postId));
+    }
+
+    public String getFirstCategorySlug() {
+        return categoryRepository.findAll()
+                .stream()
+                .findFirst()
+                .map(Category::getSlug)
+                .orElseThrow(() -> new RuntimeException("请先创建至少一个分类"));
+    }
+
     private void applyPostContent(Post post, SaveMePostRequest request, Long currentPostId) {
         post.setTitle(request.title().trim());
         post.setSlug(resolveSlug(request, currentPostId));
@@ -117,6 +136,9 @@ public class MePostService {
         post.setCoverImageUrl(normalize(request.coverImageUrl()));
         post.setCategory(resolveCategory(request.categorySlug()));
         syncTags(post, request.tagSlugs());
+        String vis = normalize(request.visibility());
+        post.setVisibility(vis == null ? PostVisibility.PUBLIC : PostVisibility.valueOf(vis.toUpperCase()));
+        syncAllowedReaders(post, request.allowedReaderUsernames());
     }
 
     private String resolveSlug(SaveMePostRequest request, Long currentPostId) {
@@ -155,6 +177,19 @@ public class MePostService {
                 post.getPostTags().add(postTag);
             }
         }
+    }
+
+    private void syncAllowedReaders(Post post, List<String> usernames) {
+        if (usernames == null || usernames.isEmpty()) {
+            post.getAllowedReaders().clear();
+            return;
+        }
+        Set<User> readers = usernames.stream()
+                .map(u -> userRepository.findByUsername(u.trim())
+                        .orElseThrow(() -> new ResourceNotFoundException("用户不存在: " + u)))
+                .collect(Collectors.toSet());
+        post.getAllowedReaders().clear();
+        post.getAllowedReaders().addAll(readers);
     }
 
     private Set<PostTag> resolveTags(Post post, List<String> tagSlugs, Map<Long, PostTag> existingByTagId) {
@@ -204,7 +239,9 @@ public class MePostService {
                 post.getPostTags().stream().map(postTag -> postTag.getTag().getSlug()).toList(),
                 post.getStatus().name(),
                 post.getPublishedAt(),
-                post.getUpdatedAt()
+                post.getUpdatedAt(),
+                post.getVisibility().name(),
+                post.getAllowedReaders().stream().map(User::getUsername).toList()
         );
     }
 

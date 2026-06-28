@@ -84,6 +84,18 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/me/accessible-posts',
+      name: 'author-accessible-posts',
+      component: () => import('../views/AuthorAccessiblePostsView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
+      path: '/me/github-import',
+      name: 'author-github-import',
+      component: () => import('../views/AuthorGitHubImportView.vue'),
+      meta: { requiresAuth: true },
+    },
+    {
       path: '/categories/:slug',
       name: 'category',
       component: () => import('../views/public/CategoryView.vue'),

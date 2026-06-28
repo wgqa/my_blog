@@ -6,8 +6,15 @@ import { getApiErrorMessage } from '../api/error'
 import { createMyPost, fetchMyPostDetail, updateMyPost, uploadMyImage } from '../api/me'
 import { fetchCategories } from '../api/public'
 import PublicLayout from '../components/public/PublicLayout.vue'
-import type { SaveMePostRequest } from '../types/me'
+import UserSearchDropdown from '../components/markdown/UserSearchDropdown.vue'
+import type { PostVisibility, SaveMePostRequest } from '../types/me'
 import type { PublicCategoryItem } from '../types/public'
+
+const visibilityOptions: { value: PostVisibility; label: string; desc: string }[] = [
+  { value: 'PUBLIC', label: '公开', desc: '所有人可见' },
+  { value: 'PRIVATE', label: '仅自己', desc: '仅作者自己可见' },
+  { value: 'RESTRICTED', label: '指定用户', desc: '仅指定的登录用户可见' },
+]
 
 const route = useRoute()
 const router = useRouter()
@@ -38,6 +45,8 @@ const form = reactive({
   coverImageUrl: '',
   categorySlug: '',
   tagSlugsText: '',
+  visibility: 'PUBLIC' as PostVisibility,
+  allowedReaderUsernames: [] as string[],
 })
 
 const pageTitle = computed(() => (isEdit.value ? '编辑文章' : '新建文章'))
@@ -102,6 +111,8 @@ const toPayload = (): SaveMePostRequest => ({
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean),
+  visibility: form.visibility,
+  allowedReaderUsernames: form.allowedReaderUsernames,
 })
 
 const applyDetail = (data: {
@@ -113,6 +124,8 @@ const applyDetail = (data: {
   coverImageUrl: string | null
   categorySlug: string
   tagSlugs: string[]
+  visibility?: PostVisibility
+  allowedReaderUsernames?: string[]
 }) => {
   form.title = data.title
   form.slug = data.slug
@@ -121,6 +134,8 @@ const applyDetail = (data: {
   form.coverImageUrl = data.coverImageUrl ?? ''
   form.categorySlug = data.categorySlug
   form.tagSlugsText = data.tagSlugs.join(', ')
+  form.visibility = data.visibility ?? 'PUBLIC'
+  form.allowedReaderUsernames = data.allowedReaderUsernames ?? []
 }
 
 const loadCategories = async () => {
@@ -271,8 +286,20 @@ onMounted(() => {
           <div class="space-y-5">
             <div class="rounded-2xl border border-zinc-200 bg-zinc-50 p-5">
               <h2 class="text-lg font-semibold text-zinc-900">发布设置</h2>
-              <p class="mt-2 text-sm text-zinc-500">当前保存后会直接公开发布。</p>
+              <p class="mt-2 text-sm text-zinc-500">选择文章可见性并配置相关选项。</p>
               <p v-if="uploading" class="mt-3 text-sm text-emerald-600">正在上传图片，请稍候。</p>
+
+              <label class="mt-4 block text-sm font-medium text-zinc-700">
+                可见性
+                <select
+                  v-model="form.visibility"
+                  class="mt-2 w-full rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-zinc-500"
+                >
+                  <option v-for="opt in visibilityOptions" :key="opt.value" :value="opt.value">
+                    {{ opt.label }} — {{ opt.desc }}
+                  </option>
+                </select>
+              </label>
             </div>
 
             <label class="block text-sm font-medium text-zinc-700">
@@ -304,6 +331,12 @@ onMounted(() => {
               >
                 {{ tag }}
               </span>
+            </div>
+
+            <div v-if="form.visibility === 'RESTRICTED'" class="rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+              <label class="block text-sm font-medium text-zinc-700">指定可读用户</label>
+              <p class="mt-1 text-xs text-zinc-500">选择允许阅读此文章的用户。</p>
+              <UserSearchDropdown v-model="form.allowedReaderUsernames" />
             </div>
 
             <label class="block text-sm font-medium text-zinc-700">
