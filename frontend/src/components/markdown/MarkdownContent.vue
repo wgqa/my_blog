@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, watch } from 'vue'
+import hljs from 'highlight.js'
+import 'highlight.js/styles/github-dark.css'
 
 const props = defineProps<{
   contentHtml: string
@@ -11,6 +13,7 @@ watch(
   () => props.contentHtml,
   async () => {
     await nextTick()
+    highlightCode()
     await renderMermaid()
   },
   { immediate: false },
@@ -18,8 +21,15 @@ watch(
 
 onMounted(async () => {
   await nextTick()
+  highlightCode()
   await renderMermaid()
 })
+
+const highlightCode = () => {
+  contentRef.value?.querySelectorAll('pre code:not(.language-mermaid)').forEach((block) => {
+    hljs.highlightElement(block as HTMLElement)
+  })
+}
 
 const renderMermaid = async () => {
   const blocks = contentRef.value?.querySelectorAll('code.language-mermaid')
