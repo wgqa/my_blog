@@ -26,9 +26,48 @@ onMounted(async () => {
 })
 
 const highlightCode = () => {
-  contentRef.value?.querySelectorAll('pre code:not(.language-mermaid)').forEach((block) => {
+  contentRef.value?.querySelectorAll('pre').forEach((pre) => {
+    const block = pre.querySelector('code:not(.language-mermaid)')
+    if (!block) return
+
     hljs.highlightElement(block as HTMLElement)
+
+    if (pre.parentElement?.classList.contains('code-block-wrapper')) return
+
+    const lang = extractLanguage(block)
+    const wrapper = document.createElement('div')
+    wrapper.className = 'code-block-wrapper'
+
+    const toolbar = document.createElement('div')
+    toolbar.className = 'code-block-toolbar'
+    toolbar.innerHTML = `<span class="code-block-lang">${lang}</span><button class="code-block-copy" title="复制代码">复制</button>`
+
+    toolbar.querySelector('.code-block-copy')?.addEventListener('click', async () => {
+      const text = (block as HTMLElement).textContent || ''
+      try {
+        await navigator.clipboard.writeText(text)
+        toolbar.querySelector('.code-block-copy')!.textContent = '已复制'
+        setTimeout(() => {
+          toolbar.querySelector('.code-block-copy')!.textContent = '复制'
+        }, 2000)
+      } catch {
+        // fallback
+      }
+    })
+
+    pre.parentNode?.insertBefore(wrapper, pre)
+    wrapper.appendChild(toolbar)
+    wrapper.appendChild(pre)
   })
+}
+
+const extractLanguage = (block: Element): string => {
+  for (const cls of block.classList) {
+    if (cls.startsWith('language-')) {
+      return cls.slice(9)
+    }
+  }
+  return 'code'
 }
 
 const renderMermaid = async () => {
