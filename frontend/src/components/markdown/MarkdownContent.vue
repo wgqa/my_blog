@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, ref, watch } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 
 const props = defineProps<{
   contentHtml: string
@@ -15,6 +15,11 @@ watch(
   },
   { immediate: false },
 )
+
+onMounted(async () => {
+  await nextTick()
+  await renderMermaid()
+})
 
 const renderMermaid = async () => {
   const blocks = contentRef.value?.querySelectorAll('code.language-mermaid')
