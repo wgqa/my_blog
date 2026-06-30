@@ -97,10 +97,11 @@ public class MeService {
         Post post = postRepository.findByIdAndStatusNot(id, PostStatus.DELETED)
                 .orElseThrow(() -> new ResourceNotFoundException("文章不存在: " + id));
 
+        boolean isPublic = post.getVisibility() == com.example.blog.model.PostVisibility.PUBLIC;
         boolean isAuthor = post.getAuthor().getId().equals(currentUser.getId());
         boolean isAllowedReader = post.getAllowedReaders().stream()
                 .anyMatch(r -> r.getId().equals(currentUser.getId()));
-        if (!isAuthor && !isAllowedReader) {
+        if (!isPublic && !isAuthor && !isAllowedReader) {
             throw new ResourceNotFoundException("文章不存在: " + id);
         }
 

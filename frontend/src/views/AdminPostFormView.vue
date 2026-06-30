@@ -36,6 +36,8 @@ const form = reactive({
   coverImageUrl: '',
   categorySlug: '',
   tagSlugsText: '',
+  visibility: 'PUBLIC' as import('../types/me').PostVisibility,
+  allowedReaderUsernames: [] as string[],
 })
 
 const tagPreview = computed(() => toPayload().tagSlugs)
@@ -48,6 +50,8 @@ const toPayload = (): SaveMePostRequest => ({
   coverImageUrl: form.coverImageUrl.trim() || null,
   categorySlug: form.categorySlug,
   tagSlugs: form.tagSlugsText.split(',').map((item) => item.trim()).filter(Boolean),
+  visibility: form.visibility,
+  allowedReaderUsernames: form.allowedReaderUsernames,
 })
 
 const applyDetail = (data: {

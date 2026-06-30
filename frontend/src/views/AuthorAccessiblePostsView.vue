@@ -23,7 +23,7 @@ const loadPosts = async () => {
   error.value = ''
   try {
     const data = await fetchAccessiblePosts({ page: page.value, size })
-    posts.value = data.content
+    posts.value = data.items
     total.value = data.total
   } catch (err) {
     error.value = getApiErrorMessage(err, '加载失败，请稍后重试。')
@@ -100,7 +100,7 @@ onMounted(() => {
           </span>
         </div>
         <div v-if="detailLoading" class="text-sm text-zinc-500">加载详情中...</div>
-        <MarkdownContent v-else :content="selected.contentHtml" />
+        <MarkdownContent v-else :contentHtml="selected.contentHtml" />
       </div>
 
       <div v-else-if="posts.length === 0" class="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-5 text-sm text-zinc-500">
