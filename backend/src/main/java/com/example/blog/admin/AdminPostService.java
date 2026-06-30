@@ -19,6 +19,7 @@ import com.example.blog.repository.PostRepository;
 import com.example.blog.repository.TagRepository;
 import com.example.blog.repository.UserRepository;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -86,6 +87,18 @@ public class AdminPostService {
         post.setStatus(PostStatus.DELETED);
         post.setUpdatedAt(LocalDateTime.now());
         postRepository.save(post);
+    }
+
+    @Transactional
+    public int reRenderAllContentHtml() {
+        List<Post> posts = postRepository.findByStatusNot(Pageable.unpaged(), PostStatus.DELETED).getContent();
+        for (Post post : posts) {
+            if (post.getContentMarkdown() != null) {
+                post.setContentHtml(markdownRenderService.render(post.getContentMarkdown()));
+            }
+        }
+        postRepository.saveAll(posts);
+        return posts.size();
     }
 
     private Post getManagedPost(Long id) {
