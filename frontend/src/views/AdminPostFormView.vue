@@ -25,6 +25,7 @@ const postId = computed(() => {
 const loading = ref(true)
 const saving = ref(false)
 const uploading = ref(false)
+const mdEditorRef = ref<InstanceType<typeof MdEditor>>()
 const categories = ref<AdminCategory[]>([])
 const error = ref('')
 const success = ref('')
@@ -85,6 +86,34 @@ const uploadEditorImage = async (files: File[], callback: (urls: string[]) => vo
     error.value = getApiErrorMessage(err, '编辑器图片上传失败，请稍后重试。')
   } finally {
     uploading.value = false
+  }
+}
+
+const handlePaste = async (event: ClipboardEvent) => {
+  const items = event.clipboardData?.items
+  if (!items) return
+
+  for (const item of items) {
+    if (!item.type.startsWith('image/')) continue
+    event.preventDefault()
+    const file = item.getAsFile()
+    if (!file) continue
+
+    uploading.value = true
+    error.value = ''
+    success.value = ''
+
+    try {
+      const data = await uploadMyImage(file)
+      const markdown = `![${data.originalName}](${data.url})`
+      mdEditorRef.value?.insert(markdown)
+      success.value = '图片粘贴成功。'
+    } catch (err) {
+      error.value = getApiErrorMessage(err, '图片粘贴失败，请稍后重试。')
+    } finally {
+      uploading.value = false
+    }
+    break
   }
 }
 
@@ -179,8 +208,9 @@ onMounted(() => {
                 <span>Markdown 内容</span>
                 <span class="text-xs text-zinc-500">支持在编辑器中直接上传图片并插入正文</span>
               </div>
-              <div class="mt-2 overflow-hidden rounded-2xl border border-zinc-300 bg-white">
+              <div class="mt-2 overflow-hidden rounded-2xl border border-zinc-300 bg-white" @paste="handlePaste">
                 <MdEditor
+                  ref="mdEditorRef"
                   v-model="form.contentMarkdown"
                   language="zh-CN"
                   :toolbars-exclude="['github']"
