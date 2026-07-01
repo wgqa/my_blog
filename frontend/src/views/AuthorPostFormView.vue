@@ -118,7 +118,7 @@ const handlePaste = async (event: ClipboardEvent) => {
     try {
       const data = await uploadMyImage(file)
       const markdown = `![${data.originalName}](${data.url})`
-      mdEditorRef.value?.insert(markdown)
+      ;(mdEditorRef.value as any)?.insert(markdown)
       success.value = '图片粘贴成功。'
     } catch (err) {
       error.value = getApiErrorMessage(err, '图片粘贴失败，请稍后重试。')
