@@ -19,13 +19,13 @@ public class MarkdownRenderService {
 
     public MarkdownRenderService() {
         MutableDataSet options = new MutableDataSet();
-        var extensions = List.of(
+        options.set(Parser.EXTENSIONS, List.of(
                 TablesExtension.create(),
                 StrikethroughExtension.create(),
                 AutolinkExtension.create(),
                 TaskListExtension.create()
-        );
-        parser = Parser.builder(options).extensions(extensions).build();
+        ));
+        parser = Parser.builder(options).build();
         renderer = HtmlRenderer.builder(options).build();
     }
 
